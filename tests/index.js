@@ -55,6 +55,11 @@ describe("server", () => {
             }
         );
 
+        router.addRoute("/README.md", (req, res) => {
+            res.writeHead(200, { "Context-Type": "text/plain" });
+            res.end("README.md content");
+        });
+
         router.get("/test/get/method", (req, res) => {
             res.writeHead(200, { "Content-Type": "text/html" });
             res.end("test text");
@@ -204,31 +209,31 @@ describe("server", () => {
             });
         });
 
-        it('when serving an SVG file the right content-type is sent', (done) => {
+        it("when serving an SVG file the right content-type is sent", (done) => {
             http.get(`${SERVER_URL}/images/empty.svg`, (res) => {
-                res.headers['content-type'].should.equal('image/svg+xml');
+                res.headers["content-type"].should.equal("image/svg+xml");
                 done();
             });
         });
 
-        it('should return the content-type `javascript` also when the asset path is some random string', (done) => {
-            router.addAssetPath('random-string1', 'tests/js/');
+        it("should return the content-type `javascript` also when the asset path is some random string", (done) => {
+            router.addAssetPath("random-string1", "tests/js/");
             http.get(`${SERVER_URL}/random-string1/empty.js`, (res) => {
-                res.headers['content-type'].should.equal('text/javascript');
+                res.headers["content-type"].should.equal("text/javascript");
                 done();
             });
         });
-        it('should return the content-type `css` also when the asset path is some random string', (done) => {
-            router.addAssetPath('random-string2', 'tests/css/');
+        it("should return the content-type `css` also when the asset path is some random string", (done) => {
+            router.addAssetPath("random-string2", "tests/css/");
             http.get(`${SERVER_URL}/random-string2/style.css`, (res) => {
-                res.headers['content-type'].should.equal('text/css');
+                res.headers["content-type"].should.equal("text/css");
                 done();
             });
         });
 
-        it('should also find assetPath when defined *without* trailing slash', (done) => {
-            const pathWithoutTrailingSlash = 'tests/js';
-            router.addAssetPath('javascript', pathWithoutTrailingSlash);
+        it("should also find assetPath when defined *without* trailing slash", (done) => {
+            const pathWithoutTrailingSlash = "tests/js";
+            router.addAssetPath("javascript", pathWithoutTrailingSlash);
             http.get(`${SERVER_URL}/javascript/empty.js`, (res) => {
                 res.statusCode.should.equal(200);
                 done();
@@ -654,14 +659,27 @@ describe("server", () => {
         });
     });
 
-    describe('Tolerant route handling', () => {
-        it('should ignore multiple slashes (e.g. http://localhost//) and return 200 status code', (done) => {
+    describe("Routes with a dot in them", () => {
+        it('should be allowed to add routes like `addRoute("/README.md")`', (done) => {
+            http.get(`${SERVER_URL}/README.md`, (res) => {
+                res.statusCode.should.equal(200);
+                let data = "";
+                res.on("data", (chunk) => (data += chunk)).on("end", () => {
+                    data.should.equal("README.md content");
+                    done();
+                });
+            });
+        });
+    });
+
+    describe("Tolerant route handling", () => {
+        it("should ignore multiple slashes (e.g. http://localhost//) and return 200 status code", (done) => {
             http.get(`${SERVER_URL}//`, (res) => {
                 res.statusCode.should.equal(200);
                 done();
             });
         });
-        it('should ignore various multiple slashes (e.g. http://localhost/////another//test) and return 200 status code', (done) => {
+        it("should ignore various multiple slashes (e.g. http://localhost/////another//test) and return 200 status code", (done) => {
             http.get(`${SERVER_URL}//////another///test`, (res) => {
                 res.statusCode.should.equal(200);
                 done();
